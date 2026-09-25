@@ -4,9 +4,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
 
-# -----------------------------
-# Dataset
-# -----------------------------
+# =========================================================
+# DATASET
+# =========================================================
 
 data = {
     "Study_Hours": [
@@ -38,9 +38,9 @@ data = {
 df = pd.DataFrame(data)
 
 
-# -----------------------------
-# Train AI Model
-# -----------------------------
+# =========================================================
+# TRAIN MODEL
+# =========================================================
 
 X = df[
     [
@@ -64,9 +64,9 @@ model = LinearRegression()
 model.fit(X_train, y_train)
 
 
-# -----------------------------
-# Recommendation System
-# -----------------------------
+# =========================================================
+# RECOMMENDATION SYSTEM
+# =========================================================
 
 def generate_recommendations(
     study_hours,
@@ -95,12 +95,12 @@ def generate_recommendations(
 
     if internal_marks < 50:
         recommendations.append(
-            "Focus more on internal assessments and revise your subjects regularly."
+            "Focus more on internal assessments and revise regularly."
         )
 
     if predicted_marks < 50:
         recommendations.append(
-            "Your predicted performance is low. Follow a regular study schedule."
+            "Follow a regular study schedule to improve your performance."
         )
 
     elif predicted_marks < 75:
@@ -116,9 +116,9 @@ def generate_recommendations(
     return recommendations
 
 
-# -----------------------------
-# Prediction Function
-# -----------------------------
+# =========================================================
+# PREDICTION
+# =========================================================
 
 def predict_student(
     student_name,
@@ -127,6 +127,9 @@ def predict_student(
     assignment_score,
     internal_marks
 ):
+
+    if not student_name:
+        student_name = "Student"
 
     student_input = pd.DataFrame({
         "Study_Hours": [study_hours],
@@ -174,29 +177,133 @@ def predict_student(
     )
 
 
-# -----------------------------
-# Gradio Website
-# -----------------------------
+# =========================================================
+# CUSTOM CSS
+# =========================================================
+
+css = """
+
+body {
+    background: #f4f7fb;
+}
+
+.gradio-container {
+    max-width: 1400px !important;
+    margin: auto !important;
+}
+
+.header {
+    background: linear-gradient(135deg, #172554, #2563eb);
+    color: white;
+    padding: 28px;
+    border-radius: 18px;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    color: white;
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+.header p {
+    color: #dbeafe;
+    font-size: 16px;
+}
+
+.card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.stat-label {
+    color: #64748b;
+    font-size: 14px;
+}
+
+"""
+
+# =========================================================
+# DASHBOARD
+# =========================================================
 
 with gr.Blocks(
-    title="AI Student Performance Prediction"
+    title="AI Student Performance Prediction",
+    css=css,
+    theme=gr.themes.Soft()
 ) as demo:
 
-    gr.Markdown(
-        "# 🎓 AI Student Performance Prediction"
-    )
+    # HEADER
 
-    gr.Markdown(
-        "### Personalized Learning Recommendation System"
-    )
+    gr.HTML("""
+    <div class="header">
+        <h1>🎓 AI Student Performance Prediction</h1>
+        <p>
+            Personalized Learning Recommendation System
+        </p>
+    </div>
+    """)
 
-    gr.Markdown(
-        "Enter the student's academic details to predict final performance."
-    )
+    # STATISTICS
 
     with gr.Row():
 
-        with gr.Column():
+        gr.HTML("""
+        <div class="stat-card">
+            <div class="stat-number">20</div>
+            <div class="stat-label">Students in Dataset</div>
+        </div>
+        """)
+
+        gr.HTML("""
+        <div class="stat-card">
+            <div class="stat-number">5</div>
+            <div class="stat-label">Academic Features</div>
+        </div>
+        """)
+
+        gr.HTML("""
+        <div class="stat-card">
+            <div class="stat-number">AI</div>
+            <div class="stat-label">Prediction Model</div>
+        </div>
+        """)
+
+        gr.HTML("""
+        <div class="stat-card">
+            <div class="stat-number">100</div>
+            <div class="stat-label">Maximum Marks</div>
+        </div>
+        """)
+
+    gr.Markdown("## 🔮 Student Performance Prediction")
+
+    # MAIN AREA
+
+    with gr.Row():
+
+        # LEFT SIDE
+
+        with gr.Column(
+            scale=1,
+            elem_classes="card"
+        ):
 
             gr.Markdown("### 📝 Student Details")
 
@@ -206,49 +313,88 @@ with gr.Blocks(
             )
 
             study_hours = gr.Number(
-                label="Study Hours",
-                value=2
+                label="Study Hours per Day",
+                value=2,
+                minimum=0,
+                maximum=24
             )
 
             attendance = gr.Number(
                 label="Attendance (%)",
-                value=50
+                value=50,
+                minimum=0,
+                maximum=100
             )
 
             assignment_score = gr.Number(
                 label="Assignment Score",
-                value=55
+                value=55,
+                minimum=0,
+                maximum=100
             )
 
             internal_marks = gr.Number(
                 label="Internal Marks",
-                value=45
+                value=45,
+                minimum=0,
+                maximum=100
             )
 
             predict_button = gr.Button(
                 "🔮 Predict Performance",
-                variant="primary"
+                variant="primary",
+                size="lg"
             )
 
-        with gr.Column():
+        # RIGHT SIDE
 
-            gr.Markdown("### 🤖 AI Prediction")
+        with gr.Column(
+            scale=1,
+            elem_classes="card"
+        ):
+
+            gr.Markdown("### 🤖 AI Prediction Result")
 
             predicted_marks = gr.Textbox(
-                label="Predicted Final Marks"
+                label="Predicted Final Marks",
+                interactive=False
             )
 
             performance = gr.Textbox(
-                label="Performance Level"
+                label="Performance Level",
+                interactive=False
             )
 
             recommendations = gr.Textbox(
                 label="💡 Personalized Recommendations",
-                lines=8
+                lines=8,
+                interactive=False
             )
+
+    # INFORMATION
+
+    gr.Markdown("---")
+
+    gr.Markdown("""
+    ## 📊 How the AI Works
+
+    The system uses **Linear Regression** to predict a student's
+    final marks using:
+
+    - 📚 Study Hours
+    - 📅 Attendance
+    - 📝 Assignment Score
+    - 📖 Internal Marks
+
+    Based on the predicted marks, the system also provides
+    personalized learning recommendations.
+    """)
+
+    # BUTTON ACTION
 
     predict_button.click(
         predict_student,
+
         inputs=[
             student_name,
             study_hours,
@@ -256,13 +402,18 @@ with gr.Blocks(
             assignment_score,
             internal_marks
         ],
+
         outputs=[
             predicted_marks,
             performance,
             recommendations
-       ]
+        ]
     )
 
+
+# =========================================================
+# RENDER DEPLOYMENT
+# =========================================================
 
 import os
 
